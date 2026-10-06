@@ -1,0 +1,125 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Sistem" id="method-metrics-system">
+    <mxGraphModel dx="1400" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1280" pageHeight="1000" math="0" shadow="0" adaptiveColors="auto">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="laneSvc" value="Servisler (ölçüm kodu her ekip tarafından elle yazılır)" style="swimlane;startSize=24;fillColor=#e1d5e7;strokeColor=#9673a6;html=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="1240" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="java" value="&lt;b&gt;Java servis&lt;/b&gt;&lt;br&gt;Micrometer + OTLP registry&lt;br&gt;@Timed / Timer (elle)&lt;br&gt;ayar: application.yml" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;" vertex="1" parent="laneSvc">
+          <mxGeometry x="40" y="45" width="260" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="go" value="&lt;b&gt;Go servis&lt;/b&gt;&lt;br&gt;OpenTelemetry Go SDK&lt;br&gt;metot başına 1 satır (elle)&lt;br&gt;ayar: OTEL_* env" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;" vertex="1" parent="laneSvc">
+          <mxGeometry x="340" y="45" width="260" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="py" value="&lt;b&gt;Python servis&lt;/b&gt;&lt;br&gt;OpenTelemetry Python SDK&lt;br&gt;dekoratör (elle)&lt;br&gt;ayar: OTEL_* env" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;" vertex="1" parent="laneSvc">
+          <mxGeometry x="640" y="45" width="260" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="contract" value="&lt;b&gt;Sözleşme dokümanı&lt;/b&gt;&lt;br&gt;method.duration · histogram · ms&lt;br&gt;class / method / outcome&lt;br&gt;service.name · instance&lt;br&gt;OTLP/HTTP · 60 sn" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;" vertex="1" parent="laneSvc">
+          <mxGeometry x="950" y="35" width="270" height="105" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="laneCol" value="OpenTelemetry Collector — otelcol-contrib, hazır bileşen, YAML ile yapılandırılır (tek instance, sabit adres: otel-collector)" style="swimlane;startSize=24;fillColor=#f5f5f5;strokeColor=#666666;html=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="200" width="1240" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="recv" value="&lt;b&gt;OTLP receiver&lt;/b&gt;&lt;br&gt;:4318 · memory_limiter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" vertex="1" parent="laneCol">
+          <mxGeometry x="40" y="45" width="240" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="filter" value="&lt;b&gt;filter&lt;/b&gt;&lt;br&gt;sadece method.duration" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" vertex="1" parent="laneCol">
+          <mxGeometry x="330" y="45" width="240" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="c2d" value="&lt;b&gt;cumulativetodelta&lt;/b&gt;&lt;br&gt;kümülatif → dakikalık fark" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" vertex="1" parent="laneCol">
+          <mxGeometry x="620" y="45" width="240" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="exp" value="&lt;b&gt;batch + otlphttp exporter&lt;/b&gt;&lt;br&gt;≤5 sn · disk kuyruğu · retry 30 dk" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" vertex="1" parent="laneCol">
+          <mxGeometry x="910" y="45" width="290" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="eC1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="laneCol" source="recv" target="filter">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="eC2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="laneCol" source="filter" target="c2d">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="eC3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="laneCol" source="c2d" target="exp">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="lanePlat" value="metrics-platform (Spring Boot)" style="swimlane;startSize=24;fillColor=#dae8fc;strokeColor=#6c8ebf;html=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="390" width="930" height="430" as="geometry"/>
+        </mxCell>
+        <mxCell id="ingest" value="&lt;b&gt;Ingest API&lt;/b&gt;&lt;br&gt;/v1/metrics · birim normalizasyonu&lt;br&gt;sözleşme ihlali · 503 = tekrar dene" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="lanePlat">
+          <mxGeometry x="40" y="50" width="250" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="alarm" value="&lt;b&gt;Alarm motoru&lt;/b&gt;&lt;br&gt;her 60 sn · son tam dakika&lt;br&gt;OK → PENDING → FIRING" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="lanePlat">
+          <mxGeometry x="340" y="50" width="250" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="outbox" value="&lt;b&gt;Outbox dağıtıcı&lt;/b&gt;&lt;br&gt;her 5 sn · SKIP LOCKED · retry&lt;br&gt;(ops.) LISTEN/NOTIFY ile anında" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="lanePlat">
+          <mxGeometry x="640" y="50" width="250" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="db" value="&lt;b&gt;PostgreSQL + TimescaleDB&lt;/b&gt;&lt;br&gt;method_points (ham nokta, 7 gün) → method_stats_1m (sürekli toplama, 30 gün)&lt;br&gt;alert_rule · alert_state · notification_outbox · contract_violation" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;size=14;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="lanePlat">
+          <mxGeometry x="40" y="170" width="850" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="query" value="&lt;b&gt;Query + Rule API&lt;/b&gt;&lt;br&gt;pencere 1 dk – 12 sa" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="lanePlat">
+          <mxGeometry x="340" y="330" width="250" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="eIngDb" value="ham nokta (idempotent)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.147;entryY=0;" edge="1" parent="lanePlat" source="ingest" target="db">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="eAlDb" value="method_stats_1m oku · durum + outbox yaz (tek tx)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="lanePlat" source="alarm" target="db">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="eObDb" value="PENDING kayıtlar" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.853;entryY=0;" edge="1" parent="lanePlat" source="outbox" target="db">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="eDbQ" value="SELECT" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="lanePlat" source="db" target="query">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="laneCh" value="Bildirim kanalları" style="swimlane;startSize=24;fillColor=#fff2cc;strokeColor=#d6b656;html=1;" vertex="1" parent="1">
+          <mxGeometry x="960" y="390" width="280" height="310" as="geometry"/>
+        </mxCell>
+        <mxCell id="chMail" value="&lt;b&gt;Email&lt;/b&gt; · iç SMTP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="laneCh">
+          <mxGeometry x="20" y="40" width="240" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="chSms" value="&lt;b&gt;SMS&lt;/b&gt; · gateway" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="laneCh">
+          <mxGeometry x="20" y="105" width="240" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="chPush" value="&lt;b&gt;Push&lt;/b&gt; · WebSocket" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="laneCh">
+          <mxGeometry x="20" y="170" width="240" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="chHook" value="&lt;b&gt;Webhook&lt;/b&gt; · otomatik aksiyon" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="laneCh">
+          <mxGeometry x="20" y="235" width="240" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="panel" value="&lt;b&gt;React panel&lt;/b&gt;&lt;br&gt;grafikler · kural yönetimi&lt;br&gt;sözleşme ihlalleri" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="960" y="720" width="280" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="latency" value="&lt;b&gt;Gecikme (en kötü durum):&lt;/b&gt; dakika biter → servis ≤60 sn → Collector ≤5 sn → alarm turu ≤60 sn → outbox ≤5 sn → bildirim ≈ 1–2,5 dk&lt;br&gt;&lt;b&gt;Arıza:&lt;/b&gt; platform/DB kapalı → Collector diskte kuyruklar (30 dk&#39;ya kadar) · Collector kapalı → o süredeki servis verisi düşer · Collector yeniden başladı → seri başına bir aralık kaybı&lt;br&gt;&lt;b&gt;İleride (opsiyonel):&lt;/b&gt; bildirimler ayrı servislere bölünürse outbox relay → RabbitMQ topic exchange → kanal kuyrukları · p95 için sabit histogram kovaları · sessizlik alarmı" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8f8f8;strokeColor=#999999;dashed=1;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="0" y="860" width="1240" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="eJava" value="OTLP/HTTP · 60 sn" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="java" target="recv">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="eGo" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="go" target="recv">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="ePy" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="py" target="recv">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="eExpIng" value="OTLP/HTTP · gzip · delta&lt;br&gt;cevap: 200 / 400 / 503" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="exp" target="ingest">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="eObCh" value="her 5 sn" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.274;" edge="1" parent="1" source="outbox" target="laneCh">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="ePanel" value="REST" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="panel" target="query">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
